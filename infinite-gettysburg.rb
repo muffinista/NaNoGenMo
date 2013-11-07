@@ -26,8 +26,7 @@ def alter_text(text)
             {}
           else
             YAML::load(File.read("words.yml"))
-          end
-  
+          end 
 
   output = text.gsub(/\n\n/, "####").gsub(/([,\.\/])/, ' \1').split.collect { |w|
     #puts w
@@ -64,24 +63,35 @@ def markdownify(text)
   text.split("\n").collect { |l| "> #{l}" }.join("\n")
 end
 
-def random_headline
-  "\n\n## On, Earth-#{rand(5000)}, Lincoln gave this speech: ##\n\n"
+def random_headline(index, parent)
+  "\n\n## On Earth-#{index}, derived from Earth-#{parent}, Lincoln gave this speech: ##\n\n"
 end
+
+class Earth < Struct.new(:id, :parent_id, :text)
+end
+
+earths = {}
+
+earths[0] = Earth.new(1, 0, text)
+wordcount = text.split.size
+
+while(wordcount < 50000) do
+  source_earth = earths[earths.keys.sample]
+  new_id = rand(5000)
+  alternate_earth = Earth.new new_id, source_earth.id, alter_text(source_earth.text)
+
+  earths[new_id] = alternate_earth
+  
+  wordcount += alternate_earth.text.split.size
+end
+
+File.open('earths.yml', 'w') {|f| f.write(earths.to_yaml) }
 
 output = ""
-output << "\n\n\n"
-output << "some copy about multiverse here"
-output << "\n\n\n"
-
-output << random_headline
-output << markdownify(text)
-
-while(output.split.size < 50000) do
-  text = alter_text(text)
-
-  output << random_headline
-  output << markdownify(text)
-end
+earths.each { |id, earth|
+  output << random_headline(earth.id, earth.parent_id)
+  output << markdownify(earth.text)
+}
 
 puts output
 

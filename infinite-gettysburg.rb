@@ -63,8 +63,53 @@ def markdownify(text)
   text.split("\n").collect { |l| "> #{l}" }.join("\n")
 end
 
+
+def load_colors
+  x = []
+  File.read("colors.txt").each_line { |l|
+    x << l.chomp
+  }
+  x
+end
+
+def load_terrain
+  x = []
+  File.read("terrain.txt").each_line { |l|
+    x << l.chomp
+  }
+  x
+end
+
+def load_elements
+  x = []
+  File.read("elements.txt").each_line { |l|
+    x << l.chomp
+  }
+  x
+end
+
+def random_color
+  @colors ||= load_colors
+  @colors.sample
+end
+
+def random_terrain
+  @terrains ||= load_terrain
+  @terrains.sample
+end
+
+def random_element
+  @elements ||= load_elements
+  @elements.sample
+end
+
 def random_headline(index, parent)
-  "\n\n## On Earth-#{index}, derived from Earth-#{parent}, Lincoln gave this speech: ##\n\n"
+  if index == 1
+    "\n\nAs the assassin's bullet pierced his skull, Abraham Lincoln's mind drifted to the Gettysburg Address. As we all know, Lincoln was an early believer in the theory of the multiverse, and as his conciousness slipped away, he drifted amongst infinite parallel universes.\n\n" +
+    "\n\n## The Gettysburg Address On Earth-1 ##\n\n"
+  else
+    "\n\n## On Earth-#{index}, a neighbor of Earth-#{parent}, from the #{random_terrain} of Gettysburg, under #{random_color} skies, Lincoln delivered this speech: ##\n\n"
+  end
 end
 
 class Earth < Struct.new(:id, :parent_id, :text)
@@ -75,7 +120,9 @@ earths = {}
 earths[0] = Earth.new(1, 0, text)
 wordcount = text.split.size
 
-while(wordcount < 50000) do
+WORDCOUNT = 50000
+
+while(wordcount < WORDCOUNT) do
   source_earth = earths[earths.keys.sample]
   new_id = rand(5000)
   alternate_earth = Earth.new new_id, source_earth.id, alter_text(source_earth.text)
